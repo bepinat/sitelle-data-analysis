@@ -4,10 +4,9 @@ The intent of this package is to have a fully workable version of ORCS. ORBS has
 
 In order to install the package properly, an environment has to be set. We have compiled all version of package that enable the software to run properly.
 
-One can define an environment name (conda environment), specify the username that will install the software, and the repository where it will be installed in the user home directory:
+One can define an environment name (conda environment) and specify the repository where it will be installed in the user home directory ($HOME):
 
 	envname='orb3'
-	username='yourusername'
 	python_folder='python_programs'
 
 First, it is necessary to install Miniconda to create the proper python environment with the appropriate package versions:
@@ -58,8 +57,8 @@ The some setups have to be done for the three packages ORB, ORBS and ORCS:
 	cd ~/$python_folder/sitelle-data-analysis/src/orbs
 	python setup.py install
 
-	echo /home/$username/$python_folder/sitelle-data-analysis/src/orb > ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
-	echo /home/$username/$python_folder/sitelle-data-analysis/src/orbs >> ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
+	echo $HOME/$python_folder/sitelle-data-analysis/src/orb > ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
+	echo $HOME/$python_folder/sitelle-data-analysis/src/orbs >> ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
 
 The following tests can then be performed:
 
