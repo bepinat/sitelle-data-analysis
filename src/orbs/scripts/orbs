@@ -1,0 +1,490 @@
+#!/usr/bin/env python 
+# *-* coding: utf-8 *-*
+# Author: Thomas Martin <thomas.martin.1@ulaval.ca>
+# File: orbs
+
+## Copyright (c) 2010-2017 Thomas Martin <thomas.martin.1@ulaval.ca>
+## 
+## This file is part of ORBS
+##
+## ORBS is free software: you can redistribute it and/or modify it
+## under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## ORBS is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+## or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+## License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with ORBS.  If not, see <http://www.gnu.org/licenses/>.
+
+####################################################
+############ ORBS Command Line #####################
+####################################################
+
+# This script is aimed to run the whole reduction
+# process.
+
+import sys, os, time, traceback
+import argparse
+from argparse import ArgumentParser
+import numpy as np
+import shutil
+import shlex, subprocess
+
+# Defining the path to ORBS module from script location
+script_path = os.path.dirname(os.path.realpath(__file__)).split()
+orbs_path = os.path.normpath(('%s'%os.sep).join(str(script_path[0]).split(os.sep)[:-1]))
+sys.path.append(orbs_path)
+
+import orb
+import orbs
+from orb.core import Tools, Logger
+from orbs.orbs import Orbs
+from orbs.core import RoadMap, JobFile, RecordFile
+import orbs.report
+import logging
+import warnings
+
+
+##############################################################
+##### MAIN FUNCTIONS #########################################
+##############################################################
+
+def get_to(args):
+    to = Tools(instrument=args.instrument_mode)
+    return to
+
+def init_orbs(args, target, silent=False, fast_init=False):
+    # load job file and init Orbs class
+    return Orbs(args.job_file_path, target,
+                instrument=args.instrument_mode,
+                fast_init=fast_init,
+                config={'NCPUS':args.ncpus},
+                silent=silent)
+
+def status(args):
+    # log in record file
+    recfile = RecordFile(args.job_file_path)
+    print(recfile.records)
+    print(recfile.file_path)
+    if len(recfile.records) < 1:
+        raise Exception('No reduction process started')
+    for record in recfile.records:
+        project = init_orbs(args, record['target'], silent=True,
+                            fast_init=True)
+        rm = RoadMap(record['instrument'], record['target'], record['cams'],
+                     project.indexer)
+        rm.print_status()
+
+def report(args):
+    # make a report
+    reporter = orbs.report.Reporter(args.job_file_path, args.instrument_mode, fast=args.fast)
+        
+def resume(args, parser):
+    recfile = RecordFile(args.job_file_path)
+    if len(recfile.records) < 1:
+        raise Exception('No reduction process to resume')
+    args = parser.parse_args(recfile.last_command)
+    start(args, resume=True)
+
+
+def clean(args):
+    def remove(path):
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                logging.info('removing directory {}'.format(path))
+                shutil.rmtree(path)
+            else:
+                logging.info('removing file {}'.format(path))
+                os.remove(path)
+    
+    recfile = RecordFile(args.job_file_path)
+    for record in recfile.records:
+        project = init_orbs(args, record['target'], silent=True,
+                            fast_init=True)
+        rm = RoadMap(record['instrument'], record['target'], record['cams'],
+                     project.indexer)
+
+        remove(project._get_project_dir())
+        remove(get_logfile_name(args))
+        remove(project.indexer._get_index_path())
+        remove(recfile.file_path)
+
+    logging.info('Working directory clean')
+
+def get_data(jobfile, args):
+    print(list(jobfile.raw_params.keys()))
+    files = list()
+    for ipath in ['OBS', 'STDIM', 'FLAT']:
+        files += jobfile.raw_params[ipath]
+    to_download = list()
+    orb.utils.cadc.get_cadc_data(to_download)
+    
+def get_logfile_name(args):
+     return os.path.basename(args.job_file_path) + '.log'
+
+def start(args, resume=False):
+    """Start reduction operation
+
+    :param args: Namespace object containing the passed argments
+      returned by the function ArgParse.parse_args().
+    """
+    
+    start_time = time.time()
+    target = 'object'
+
+    to = get_to(args)
+
+    #################
+    # Check options #
+    #################
+
+    # special targets are mutually exclusive
+    camera = 'full'
+    if np.sum([args.flat, args.standard, args.laser, args.extphase]) > 1:
+        raise Exception("only one special target (flat, standard, laser, extphase) can be choosen")
+        sys.exit(2)
+    if args.flat:
+        target = 'flat'
+        camera = 'single1'
+    elif args.standard:
+        target = 'standard'
+    elif args.laser:
+        target = 'laser'
+        camera = 'single1'
+    elif args.extphase:
+        target = 'extphase'
+
+    
+    # check first if reduction can be resumed
+    if not resume and args.start_step == 0:
+        project_fast_init = init_orbs(
+            args, target, fast_init=True, silent=True)
+
+        if project_fast_init.roadmap.get_resume_step() > 0:
+            project_fast_init.roadmap.print_status()
+            print('Part of the process has already been done. Do you want to resume it instead of starting it again from the beginning [y/n] ?')
+
+            answer_ok = False
+            while not answer_ok:
+                s = input(' > ')
+                if s in ['y', 'n']:
+                    answer_ok = True
+                    if s == 'y': resume = True
+                else: print("Please answer 'y' or 'n'")
+        
+
+    ########################
+    # Log passed arguments #
+    ########################
+    
+    # header of the log
+    logging.info("")
+    logging.info("#"*45)
+    logging.info("## ORBS reduction process ")
+    logging.info("#"*45)
+    logging.info("")
+
+    logging.info("Passed arguments : ")
+    
+    for arg in args.__dict__:
+        logging.info('{}: {}'.format(arg, args.__dict__[arg]))
+
+    if args.nofilter:
+        warnings.warn(
+            "No filter correction during calibration")
+
+    if args.nowcs:
+        warnings.warn(
+            "No WCS calibration")
+
+    if args.noflux:
+        warnings.warn(
+            "No flux calibration")
+
+    if args.flat:
+        logging.info(
+            "Only the phase map will be computed. No spectrum computation !")
+
+    if args.standard:
+        logging.info(
+            "Standard cube: The spectrum of the standard star will be returned")
+
+    if args.apodization_function is not None:
+        logging.info(
+            "Apodization function: %s"%args.apodization_function)
+    else:
+        logging.info(
+            "No apodization will be done to the computed spectrum")
+
+    if args.start_step != 0: 
+        logging.info("Starting step: %d"%args.start_step)
+
+  
+    ###################################
+    # Run ORBS with the given options #
+    ###################################
+    
+    # record roadmap
+    recfile = RecordFile(args.job_file_path)
+    recfile.add_record(args.instrument_mode, target, camera)
+    
+    project = init_orbs(args, target)
+
+    # get resume step if reduction must be resumed
+    if resume:
+        args.start_step = project.roadmap.get_resume_step()
+
+    # start reduction
+    logging.info("Reduction process started at : " + time.ctime(start_time))
+    try:
+        project.start_reduction(
+            apodization_function=args.apodization_function,
+            start_step=args.start_step,
+            filter_correction=not args.nofilter,
+            wcs_calibration=not args.nowcs,
+            flux_calibration=not args.noflux)
+       
+    except BaseException as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=10, file=sys.stdout)
+
+        
+        sys.exit(2)
+        
+    end_time = time.time()
+    logging.info("Reduction process finished at : " + time.ctime(end_time))
+    logging.info("Total time : " + str((end_time - start_time) / 3600.) + " hours")         
+
+
+
+def add_all_operations(instrument_parser, epilog):
+
+    instrument_parser.add_argument(
+        'job_file_path', action='store',
+        help="Path to the job file.")
+
+    instrument_parser.add_argument(
+        '--noprint', dest='noprint', action='store_true',
+        default=False,
+        help="The standard output is redirected to the file 'stdout.log'. Helpful for logging error messages.")
+    
+    instrument_parser.add_argument(
+        '--ncpus', dest='ncpus', action='store',
+        default=0,
+        type=int,
+        help="Number of CPUs to use for parallel processing (default set in config file)")
+
+
+    subparsers = instrument_parser.add_subparsers(help='operation type', dest='subparser_name')
+
+    parser_start = subparsers.add_parser('start', help='Start the reduction process.', formatter_class=argparse.RawDescriptionHelpFormatter, epilog=epilog)
+
+
+    group_target = parser_start.add_argument_group('Particular targets', '')
+
+    group_target.add_argument('--flat', dest='flat',
+                              action='store_true',
+                              default=False,
+                              help="The reduction stops to the phase map step. This option must be used with flat cubes. All star dependant processes are skipped also.")
+
+    group_target.add_argument('--standard', dest='standard',
+                              action='store_true',
+                              default=False,
+                              help="Use it to reduce a standard star cube. Instead of returning a full cube, return the spectrum of the standard. The standard star position must be the target position defined in the option file (see TARGETR, TARGETD, TARGETX, TARGETY).")
+
+    group_target.add_argument('--laser', dest='laser',
+                              action='store_true',
+                              default=False,
+                              help="Compute a calibration laser map from a calibration laser cube.")
+
+    group_target.add_argument('--extphase', dest='extphase', action='store_true',
+                              default=False,
+                              help='Run a reduction with an external phase map (useful for extended HII region covering the whole FOV). PHASEMAP0 keyword must be present in the job file.')
+
+    parser_start.add_argument(
+        '--debug', dest='debug', action='store_true',
+        default=False,
+        help="Turn on debug mode (logging messages displayed on screen are more informative)")
+
+    parser_start.add_argument('--step',
+                              dest='start_step',
+                              action='store',
+                              default=0,
+                              type=int,
+                              help="Starting step. Use it to start (or restart) from a specific reduction step. To simply resume a reduction use the operation 'resume' instead.")
+
+    parser_start.add_argument('--apod', '-a',
+                              dest='apodization_function',
+                              action='store',
+                              default=None,
+                              help="Apodization function. Can be a float > 1. The coefficient 1.0 stands for NO apodization (default is 1.0).")
+
+    group_special = parser_start.add_argument_group('Special arguments', 'Arguments less often used.')
+
+    group_special.add_argument('--nofilter', dest='nofilter',
+                               action='store_true',
+                               default=False,
+                               help='No filter correction of the spectral cube will be made during calibration')
+
+    group_special.add_argument('--nowcs', dest='nowcs',
+                               action='store_true',
+                               default=False,
+                               help='No WCS calibration of the spectral cube')
+
+    group_special.add_argument('--noflux', dest='noflux',
+                               action='store_true',
+                               default=False,
+                               help='No flux calibration of the spectral cube')
+
+
+    parser_resume = subparsers.add_parser('resume', help='Resume reduction process from the last completed step.')
+
+    parser_clean = subparsers.add_parser('clean', help='Clean all the temporary files. Final products are not removed.')
+
+    parser_get_data = subparsers.add_parser('get-data', help='Check if data needed in job file exists and download it if necessary from CADC servers.')
+
+
+
+    parser_status = subparsers.add_parser('status', help='Print the status of the reduction process.')
+
+    parser_report = subparsers.add_parser('report', help='Make a precise report.')
+    parser_report.add_argument(
+        '--debug', dest='debug', action='store_true',
+        default=False,
+        help="Turn on debug mode (logging messages displayed on screen are more informative)")
+    parser_report.add_argument(
+        '--fast', dest='fast', action='store_true',
+        default=False,
+        help="fast report mode (longer checks are not made)")
+
+    
+########################################################################
+##################### MAIN #############################################
+########################################################################
+
+if __name__ == "__main__":
+
+    # import pydevd
+    # pydevd.settrace('localhost', port=8888, stdoutToServer=True, stderrToServer=True)
+
+    """Main entrance of the script.
+    
+    Parse arguments and launch the reduction process.
+    """
+
+    # define epilog for command help
+
+    epilog = """  ORBS version: {}, ORB version: {}
+  Author: Thomas Martin (thomas.martin.1@ulaval.ca)""".format(
+      orbs.version.__version__, orb.core.__version__)
+     
+    # define main parser
+    parser = ArgumentParser(
+        prog='orbs',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Run the whole reduction process.")
+
+
+    instrument_parsers = parser.add_subparsers(help='instrument mode', dest='instrument_mode')
+
+    # add an instrument parser for each instrument
+    spiomm_parser = instrument_parsers.add_parser('spiomm', help='SpiOMM mode')
+    sitelle_parser = instrument_parsers.add_parser('sitelle', help='SITELLE mode')
+
+    # add the same operations to all instrument parsers
+    add_all_operations(spiomm_parser, epilog)
+    add_all_operations(sitelle_parser, epilog)
+
+    if len(sys.argv) < 2:
+        parser.print_usage()
+        sys.exit(2)
+        
+    args = parser.parse_args()
+    
+    # check job file 
+    if not os.path.exists(args.job_file_path):
+        raise Exception('Job file %s does not exist'%args.job_file_path)
+
+    if args.subparser_name == 'start':
+        is_laser = args.laser
+    else:
+        is_laser = False
+
+    if (args.subparser_name == 'status'
+        or args.subparser_name == 'clean'):
+        fast_init = True
+    else:
+        fast_init = False
+
+    # Read job file (check for file integrity)
+    jobfile = JobFile(args.job_file_path, args.instrument_mode, is_laser=is_laser)
+
+    if jobfile.is_valid():
+        out_params = jobfile.get_params()
+    else:
+        out_params = list()
+
+    # start and config logging
+    try:
+        logger = Logger(debug = args.debug)
+    except AttributeError:
+        logger = Logger(debug=False)
+        
+    logger.start_file_logging(logfile_path=args.job_file_path + '.log')
+
+    if 'calibration_laser_map_path' in out_params:
+        args.calibration_laser_map_path = out_params['calibration_laser_map_path']
+        
+    ###################
+    # start operation #
+    ###################
+    
+    if args.subparser_name == 'start':
+        jobfile.check_validity()
+        logging.info("Start %s"%args.job_file_path.strip())
+        # record last command
+        recfile = RecordFile(args.job_file_path)
+        recfile.last_command = sys.argv[1:]
+        recfile.update()
+
+        # start reduction
+        start(args)
+        
+    if args.subparser_name == 'status':
+        jobfile.check_validity()
+        logging.info("Status %s"%args.job_file_path.strip())
+        status(args)
+
+    if args.subparser_name == 'report':
+        jobfile.check_validity()
+        logging.info("Report %s"%args.job_file_path.strip())
+        report(args)
+        
+    if args.subparser_name == 'resume':
+        jobfile.check_validity()
+        logging.info("Resume %s"%args.job_file_path.strip())
+        resume(args, parser)
+
+    if args.subparser_name == 'clean':
+        logging.info("Clean %s"%args.job_file_path.strip())
+        clean(args)
+
+    if args.subparser_name == 'get-data':
+        logging.info("Get Data %s"%args.job_file_path.strip())
+        get_data(jobfile, args)
+
+
+        
+
+
+    
+
+    
+    
+
+

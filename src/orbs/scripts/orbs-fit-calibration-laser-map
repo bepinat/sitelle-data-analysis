@@ -1,0 +1,82 @@
+#!/usr/bin/env python 
+# *-* coding: utf-8 *-*
+# Author: Thomas Martin <thomas.martin.1@ulaval.ca> 
+# File: orb-fit-calibration-laser-map
+
+## Copyright (c) 2010-2017 Thomas Martin <thomas.martin.1@ulaval.ca>
+## 
+## This file is part of ORB
+##
+## ORB is free software: you can redistribute it and/or modify it
+## under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## ORB is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+## or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+## License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with ORB.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys, os
+from argparse import ArgumentParser
+import argparse
+
+
+from orb.core import Tools, Logger
+from orb.cube import HDFCube
+import orb
+
+import orb.utils.io
+import orb.utils.image
+
+###########################################
+### MAIN ##################################
+###########################################
+    
+def main(args):
+    Logger().start_logging()
+    to = Tools(instrument=args.instrument_mode)
+    calib_map = orb.utils.io.read_fits(args.calibration_laser_map_path)
+    params, calib_map_fit, model_fit = orb.utils.image.fit_calibration_laser_map(
+        calib_map, float(to._get_config_parameter('CALIB_NM_LASER')),
+        binning=2, return_model_fit=True)
+    orb.utils.io.write_fits(
+        os.path.splitext(args.calibration_laser_map_path)[0] + '.fit.fits',
+        calib_map_fit, overwrite=True)
+    orb.utils.io.write_fits(
+        os.path.splitext(
+            args.calibration_laser_map_path)[0] + '.fit.residual.fits',
+        calib_map - calib_map_fit, overwrite=True)
+    orb.utils.io.write_fits(
+        os.path.splitext(args.calibration_laser_map_path)[0] + '.fit.model.fits',
+        model_fit, overwrite=True)
+    orb.utils.io.write_fits(
+        os.path.splitext(
+            args.calibration_laser_map_path)[0] + '.fit.wavefront.fits',
+        calib_map_fit - model_fit, overwrite=True)
+
+
+    
+
+if __name__ == "__main__":
+
+    parser = ArgumentParser(prog='orbs-fit-calibration-laser-map',
+                            formatter_class=argparse.RawDescriptionHelpFormatter,
+                            description="Fit a calibration laser map.")
+
+    parser.add_argument('instrument_mode',
+                        action='store',
+                        choices=['sitelle', 'spiomm'],
+                        help='Instrument mode')
+
+    
+    parser.add_argument(dest='calibration_laser_map_path', help='Path to the calibration laser map (FITS file)')
+                            
+    args = parser.parse_args()
+
+    main(args)
+        
+
