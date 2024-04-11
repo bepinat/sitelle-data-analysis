@@ -44,6 +44,11 @@ Packages necessary for ORBS:
 
 No additional packages are necessary for ORCS.
 
+You may have to install some dependencies such as build-essential for gvar or cfitsio. For Ubuntu users, it can be done doing the following:
+
+        sudo apt install build-essential
+        sudo apt install libcfitsio5 libcfitsio-bin
+
 Once this is done, you need to download the software from git.
 
 	mkdir ~/$python_folder
@@ -54,8 +59,6 @@ The some setups have to be done for the three packages ORB, ORBS and ORCS:
 
 	cd ~/$python_folder/sitelle-data-analysis/src/orb
 	python setup.py build_ext --inplace
-	cd ~/$python_folder/sitelle-data-analysis/src/orbs
-	python setup.py install
 
 	echo $HOME/$python_folder/sitelle-data-analysis/src/orb > ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
 	echo $HOME/$python_folder/sitelle-data-analysis/src/orbs >> ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
