@@ -69,3 +69,7 @@ The following tests can then be performed:
     python -c 'import orb.core'
     python -c 'import orbs.core'
     python -c 'import orcs.core'
+
+Then, scripts (orb-convert, orbs, orbs-fit-calibration-laser-map, orbs-sitelle-makejob) may be put in the user $PATH (this can be added in the .bashrc):
+
+    export PATH=$PATH:$HOME/$python_folder/sitelle-data-analysis/src/orb/scripts:$HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts
