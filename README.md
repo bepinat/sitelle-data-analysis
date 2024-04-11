@@ -61,6 +61,8 @@ The some setups have to be done for the three packages ORB, ORBS and ORCS:
     python setup.py build_ext --inplace
     echo $HOME/$python_folder/sitelle-data-analysis/src/orb > ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
     echo $HOME/$python_folder/sitelle-data-analysis/src/orbs >> ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
+    cd ~/$python_folder/sitelle-data-analysis/src/orcs
+    python setup.py install
 
 The following tests can then be performed:
 
