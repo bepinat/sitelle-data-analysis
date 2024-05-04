@@ -29,7 +29,7 @@ of the file)
 """
 
 __author__ = "Thomas Martin"
-__licence__ = "Thomas Martin (thomas.martin.1@ulaval.ca)"       
+__licence__ = "Thomas Martin (thomas.martin.1@ulaval.ca)"
 
 
 import numpy as np
@@ -314,9 +314,9 @@ class FitVector(object):
         else: return_complex = False
         
         # all multiplicative models must be multiplied together before
-        # beging applied to the the additive models using the
+        # being applied to the additive models using the
         # dedicated class option (because multiplication by a filter
-        # function cannot be applied straighforward to a line model)
+        # function cannot be applied straightforward to a line model)
         mult_model = np.ones_like(self.vector, dtype=float)
         for i in range(len(self.models)):
             if self.models_operation[i] == 'mult':
@@ -350,7 +350,6 @@ class FitVector(object):
                 else:
                     model += model_to_append
                 
-    
         if np.any(np.isnan(gvar.mean(model))):
             logging.debug('Nan in model')
 
@@ -409,7 +408,6 @@ class FitVector(object):
         """
         return self.sigma[
             np.min(self.signal_range):np.max(self.signal_range)]
-
 
 
     def fit(self, compute_mcmc_error=False):
