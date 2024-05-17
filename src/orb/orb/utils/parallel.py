@@ -49,8 +49,7 @@ class JobServer(object):
         self.timeout = int(timeout)
         
         if self.ncpus == 0:
-            self.ncpus = max([min([multiprocessing.cpu_count(), 24]), 1])  # We use at most 24 CPUs. If spawn does not solve the issue, reducing the number of CPUs/threads reduces the chances that they want the lock at the same time for e.g. write to logger
-            #self.ncpus = max([int(multiprocessing.cpu_count() * 7 / 8), 1])  # We keep at least 1/8 of free CPUs. If spawn does not solve the issue, reducing the number of CPUs/threads reduces the chances that they want the lock at the same time for e.g. write to logger
+            self.ncpus = max([min([multiprocessing.cpu_count() - 1, 24]), 1])  # We use at most 24 CPUs and let at least 1 free CPU. Reducing the number of CPUs/threads reduces the chances that they want the lock at the same time for e.g. write to logger
             #self.ncpus = multiprocessing.cpu_count()  # We use all CPUs
         
         if spawn:
@@ -165,8 +164,7 @@ def get_ncpus(ncpus):
         logging.debug('max cpus limited to {} because of machine hard limit configuration'.format(max_cpus))
     return ncpus
 
-    
-    
+
 def init_pp_server(ncpus=0, silent=False, use_ray=False, timeout=1000):
     """Initialize a server for parallel processing.
 
