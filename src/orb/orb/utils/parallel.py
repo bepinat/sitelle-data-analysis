@@ -176,6 +176,7 @@ def init_pp_server(ncpus=0, silent=False, use_ray=False, timeout=1000):
       sources and information on Parallel Python software
     """
     ncpus = get_ncpus(ncpus)
+    print("NCPUS in init_pp_server", ncpus)
 
     if not use_ray:
         job_server = JobServer(ncpus, timeout=timeout)
