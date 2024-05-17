@@ -28,8 +28,6 @@ import dill
 import warnings
 import traceback
 
-from multiprocessing import set_start_method
-set_start_method("spawn")
 
 # see https://stackoverflow.com/questions/8804830/python-multiprocessing-picklingerror-cant-pickle-type-function
 def run_dill_encoded(payload):
