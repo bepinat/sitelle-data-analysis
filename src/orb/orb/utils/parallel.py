@@ -48,13 +48,14 @@ class JobServer(object):
         self.timeout = int(timeout)
         
         if self.ncpus == 0:
-            #self.ncpus = max([int(multiprocessing.cpu_count() * 7 / 8), 1])  # We keep at least 1/8 of free CPUs
-            self.ncpus = multiprocessing.cpu_count()  # We use all CPUs
+            self.ncpus = max([int(multiprocessing.cpu_count() * 7 / 8), 1])  # We keep at least 1/8 of free CPUs
+            #self.ncpus = multiprocessing.cpu_count()  # We use all CPUs
 
         if spawn:
             spawn = 'spawn'
         else:
             spawn = 'forkserver'
+        print(spawn)
         self.pool = multiprocessing.get_context(spawn).Pool(
             processes=self.ncpus, maxtasksperchild=1)
 
@@ -74,12 +75,12 @@ class JobServer(object):
         try:
             self.pool.close()
         except:
-            logging.debug('exception occured during pool.close: ', traceback.format_exc()) 
+            logging.debug('exception occurred during pool.close: ', traceback.format_exc()) 
         try:
             self.pool.join()
         except RuntimeError: pass
         except:
-            logging.debug('exception occured during pool.join: ', traceback.format_exc())
+            logging.debug('exception occurred during pool.join: ', traceback.format_exc())
         logging.debug('parallel processing closed')
         try:
             del self.pool
@@ -97,7 +98,7 @@ class Job(object):
         except multiprocessing.TimeoutError:
             logging.info('worker timeout: ', traceback.format_exc())
         except:
-            logging.info('exception occured during worker execution: ', traceback.format_exc())
+            logging.info('exception occurred during worker execution: ', traceback.format_exc())
     
 
 class RayJob(object):
@@ -180,7 +181,7 @@ def init_pp_server(ncpus=0, silent=False, use_ray=False, timeout=1000):
 
     if not use_ray:
         #job_server = JobServer(ncpus, timeout=timeout)
-        job_server = JobServer(ncpus, timeout=timeout, spawn=True)
+        job_server = JobServer(ncpus, timeout=timeout, spawn=True)  # we use spwan, as it seems to have less problems to recombine threads (https://pythonspeed.com/articles/python-multiprocessing/, https://github.com/python/cpython/issues/96062)
         ncpus = job_server.ncpus
                 
     else:
