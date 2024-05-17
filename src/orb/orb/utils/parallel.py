@@ -48,7 +48,8 @@ class JobServer(object):
         self.timeout = int(timeout)
         
         if self.ncpus == 0:
-            self.ncpus = max([multiprocessing.cpu_count() - 2, 1])  # We keep at least 2 free CPUs for other operations
+            #self.ncpus = max([int(multiprocessing.cpu_count() * 7 / 8), 1])  # We keep at least 1/8 of free CPUs
+            self.ncpus = multiprocessing.cpu_count()  # We use all CPUs
 
         if spawn:
             spawn = 'spawn'
@@ -176,19 +177,17 @@ def init_pp_server(ncpus=0, silent=False, use_ray=False, timeout=1000):
       sources and information on Parallel Python software
     """
     ncpus = get_ncpus(ncpus)
-    print("NCPUS in init_pp_server", ncpus)
 
     if not use_ray:
-        job_server = JobServer(ncpus, timeout=timeout)
+        #job_server = JobServer(ncpus, timeout=timeout)
+        job_server = JobServer(ncpus, timeout=timeout, spawn=True)
         ncpus = job_server.ncpus
-        print("not use_ray: NCPUS in init_pp_server", ncpus)
                 
     else:
         ray.shutdown()
         ray.init(num_cpus=int(ncpus), configure_logging=False, object_store_memory=int(3e9))
         job_server = RayJobServer()
         ncpus = int(ray.available_resources()['CPU'])
-        print("use_ray: NCPUS in init_pp_server", ncpus)
     
     if not silent:
         logging.info("Init of the parallel processing server with %d threads"%ncpus)
