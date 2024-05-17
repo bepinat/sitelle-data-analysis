@@ -28,6 +28,9 @@ import dill
 import warnings
 import traceback
 
+from multiprocessing import set_start_method
+set_start_method("spawn")
+
 # see https://stackoverflow.com/questions/8804830/python-multiprocessing-picklingerror-cant-pickle-type-function
 def run_dill_encoded(payload):
     fun, args = dill.loads(payload)
@@ -48,8 +51,8 @@ class JobServer(object):
         self.timeout = int(timeout)
         
         if self.ncpus == 0:
-            self.ncpus = max([int(multiprocessing.cpu_count() * 7 / 8), 1])  # We keep at least 1/8 of free CPUs
-            #self.ncpus = multiprocessing.cpu_count()  # We use all CPUs
+            #self.ncpus = max([int(multiprocessing.cpu_count() * 7 / 8), 1])  # We keep at least 1/8 of free CPUs. If spawn does not solve the issue, reducing the number of CPUs/threads reduces the chances that they want the lock at the same time for e.g. write to logger
+            self.ncpus = multiprocessing.cpu_count()  # We use all CPUs
 
         if spawn:
             spawn = 'spawn'
