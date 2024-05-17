@@ -48,7 +48,7 @@ class JobServer(object):
         self.timeout = int(timeout)
         
         if self.ncpus == 0:
-            self.ncpus = np.max([multiprocessing.cpu_count() - 2, 1])  # We keep at least 2 free CPUs for other operations
+            self.ncpus = max([multiprocessing.cpu_count() - 2, 1])  # We keep at least 2 free CPUs for other operations
 
         if spawn:
             spawn = 'spawn'
