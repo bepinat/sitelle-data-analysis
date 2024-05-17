@@ -27,7 +27,7 @@ Once this is done, it is time to install the required python packages.
 
 Packages necessary for ORB:
 
-    conda install -c conda-forge -c astropy -c anaconda python=3.9.7 ipython astropy=5.3.4 numpy=1.24.3 scipy=1.10.1 matplotlib=3.5.1 cython=3.0.0 dill=0.3.7 pandas=1.4.4 photutils=1.4.0 astroquery=0.4.6 #h5py=3.9.0 pytables jupyterlab gitpython reproject
+    conda install -c conda-forge -c astropy -c anaconda python=3.9.7 ipython astropy=5.3.4 numpy=1.24.3 scipy=1.10.1 matplotlib=3.5.1 cython=3.0.0 dill=0.3.7 pandas=1.4.4 photutils=1.4.0 astroquery=0.4.6 pytables jupyterlab gitpython reproject
     conda install h5py=3.9.0
     pip install pyregion==2.1.1 --no-deps
     pip install gvar==10 --no-deps
