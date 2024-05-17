@@ -49,14 +49,15 @@ class JobServer(object):
         self.timeout = int(timeout)
         
         if self.ncpus == 0:
+            self.ncpus = max([min([multiprocessing.cpu_count(), 24]), 1])  # We use at most 24 CPUs. If spawn does not solve the issue, reducing the number of CPUs/threads reduces the chances that they want the lock at the same time for e.g. write to logger
             #self.ncpus = max([int(multiprocessing.cpu_count() * 7 / 8), 1])  # We keep at least 1/8 of free CPUs. If spawn does not solve the issue, reducing the number of CPUs/threads reduces the chances that they want the lock at the same time for e.g. write to logger
-            self.ncpus = multiprocessing.cpu_count()  # We use all CPUs
-
+            #self.ncpus = multiprocessing.cpu_count()  # We use all CPUs
+        
         if spawn:
             spawn = 'spawn'
         else:
             spawn = 'forkserver'
-        print(spawn)
+        
         self.pool = multiprocessing.get_context(spawn).Pool(
             processes=self.ncpus, maxtasksperchild=1)
 
@@ -181,10 +182,9 @@ def init_pp_server(ncpus=0, silent=False, use_ray=False, timeout=1000):
     ncpus = get_ncpus(ncpus)
 
     if not use_ray:
-        #job_server = JobServer(ncpus, timeout=timeout)
-        job_server = JobServer(ncpus, timeout=timeout, spawn=True)  # we use spwan, as it seems to have less problems to recombine threads (https://pythonspeed.com/articles/python-multiprocessing/, https://github.com/python/cpython/issues/96062)
+        job_server = JobServer(ncpus, timeout=timeout)
+        #job_server = JobServer(ncpus, timeout=timeout, spawn=True)  # we use spwan, as it seems to have less problems to recombine threads (https://pythonspeed.com/articles/python-multiprocessing/, https://github.com/python/cpython/issues/96062)
         ncpus = job_server.ncpus
-                
     else:
         ray.shutdown()
         ray.init(num_cpus=int(ncpus), configure_logging=False, object_store_memory=int(3e9))
