@@ -53,7 +53,7 @@ Once this is done, you need to download the software from git.
 
     mkdir ~/$python_folder
     cd ~/$python_folder
-    git clone https://gitlab.cfht.hawaii.edu/astro/sitelle-data-analysis.git
+    git clone https://github.com/bepinat/sitelle-data-analysis.git
 
 The some setups have to be done for the three packages ORB, ORBS and ORCS:
 
