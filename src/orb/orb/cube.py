@@ -2671,7 +2671,7 @@ class SpectralCube(Cube):
         
         
     def compute_flambda(self, deg=1, std_im=None, std_sp=None):
-        """Return flamba calibration function
+        """Return flambda calibration function
 
         :param deg: Degree of the polynomial used to fit the flux
           correction vector (this is only used if std_sp is set to a
