@@ -29,7 +29,7 @@ Packages necessary for ORB:
 
     conda install -c conda-forge -c astropy -c anaconda python=3.9.7 ipython astropy=5.3.4 numpy=1.24.3 scipy=1.10.1 matplotlib=3.5.1 cython=3.0.0 dill=0.3.7 pandas=1.4.4 photutils=1.4.0 astroquery=0.4.6 pytables jupyterlab gitpython reproject
     conda install h5py=3.9.0
-    pip install pyregion==2.1.1 --no-deps
+    pip install pyregion==2.2.0 --no-deps  # the version that was previously used does not install properly anymore with the latest conda version: pip install pyregion==2.1.1 --no-deps
     pip install gvar==10 --no-deps
     pip install lsqfit==13.0.4 --no-deps
     pip install fpdf==1.7.2 --no-deps
@@ -53,9 +53,9 @@ Once this is done, you need to download the software from git.
 
     mkdir ~/$python_folder
     cd ~/$python_folder
-    git clone https://gitlab.cfht.hawaii.edu/astro/sitelle-data-analysis.git
+    git clone https://github.com/bepinat/sitelle-data-analysis.git
 
-The some setups have to be done for the three packages ORB, ORBS and ORCS:
+Some setups have to be done for the three packages ORB, ORBS and ORCS:
 
     cd ~/$python_folder/sitelle-data-analysis/src/orb
     python setup.py build_ext --inplace
