@@ -1,8 +1,8 @@
 This release of ORB/ORBS/ORCS is from the version provided by Thomas Martin (https://github.com/thomasorb) at the date of April 1st 2024.
 
-The intent of this package is to have a fully workable version of ORCS. ORBS has not been tested and my not be necessary. Nevertheless, this package may be merged in the future with the software suite used at CFHT to perform the reduction of SITELLE data with ORBS, so that one single package enable to reduce and analyse the data.
+The intent of this package is to have a fully workable version of ORCS. ORBS has not been tested and may not be necessary. Nevertheless, this package may be merged in the future with the software suite used at CFHT to perform the reduction of SITELLE data with ORBS, so that one single package enables to reduce and analyse the data.
 
-In order to install the package properly, an environment has to be set. We have compiled all version of package that enable the software to run properly.
+In order to install the package properly, an environment has to be set. We have compiled all versions of packages that enable the software to run properly.
 
 One can define an environment name (conda environment) and specify the repository where it will be installed in the user home directory ($HOME):
 
@@ -49,7 +49,7 @@ You may have to install some dependencies such as build-essential for gvar or cf
     sudo apt install build-essential
     sudo apt install libcfitsio5 libcfitsio-bin
 
-Once this is done, you need to download the software from git.
+Once this is done, you need to download the software from git:
 
     mkdir ~/$python_folder
     cd ~/$python_folder
