@@ -36,7 +36,7 @@ Packages necessary for ORB:
 
 Packages necessary for ORBS:
 
-    conda install -n $envname -c conda-forge clint=0.5.1 html2text distro=1.8.0 lxml=4.9.1 python-magic
+    conda install -c conda-forge clint=0.5.1 html2text distro=1.8.0 lxml=4.9.1 python-magic
     pip install gitdb==4.0.7 --no-deps
     pip install smmap==4.0.0 --no-deps
     pip install cadcdata --no-deps
