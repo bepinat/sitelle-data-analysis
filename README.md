@@ -59,8 +59,9 @@ Some setups have to be done for the three packages ORB, ORBS and ORCS:
 
     cd ~/$python_folder/sitelle-data-analysis/src/orb
     python setup.py build_ext --inplace
-    echo $HOME/$python_folder/sitelle-data-analysis/src/orb > ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
-    echo $HOME/$python_folder/sitelle-data-analysis/src/orbs >> ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth
+    echo $HOME/$python_folder/sitelle-data-analysis/src/orb > ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth  # for developers
+    echo $HOME/$python_folder/sitelle-data-analysis/src/orbs >> ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth  # for developers
+    python setup.py install # not for developer
     cd ~/$python_folder/sitelle-data-analysis/src/orcs
     python setup.py install
 
@@ -70,6 +71,13 @@ The following tests can then be performed:
     python -c 'import orbs.core'
     python -c 'import orcs.core'
 
-Then, scripts (orb-convert, orbs, orbs-fit-calibration-laser-map, orbs-sitelle-makejob) may be put in the user $PATH (this can be added in the .bashrc):
+Then, for developpers, scripts (orb-convert, orbs, orbs-fit-calibration-laser-map, orbs-sitelle-makejob) may be linked to the binaries of the environment:
 
-    export PATH=$PATH:$HOME/$python_folder/sitelle-data-analysis/src/orb/scripts:$HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts
+    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orb/scripts/orb-convert ~/miniconda3/envs/$envname/bin/
+    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs ~/miniconda3/envs/$envname/bin/
+    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs-fit-calibration-laser-map ~/miniconda3/envs/$envname/bin/
+    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs-sitelle-makejob ~/miniconda3/envs/$envname/bin/
+
+They can alternatively be put in the user $PATH (this can be added in the .bashrc), but this will also be effective outside the environment:
+
+    export PATH=$PATH:$HOME/$python_folder/sitelle-data-analysis/src/orb/scripts:$HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts  # for developers
