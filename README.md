@@ -11,11 +11,11 @@ One can define an environment name (conda environment) and specify the repositor
 
 First, it is necessary to install Miniconda to create the proper python environment with the appropriate package versions:
 
-    mkdir -p ~/miniconda3
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
-    bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-    rm -rf ~/miniconda3/miniconda.sh
-    ~/miniconda3/bin/conda init bash
+    mkdir -p $HOME/miniconda3
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O $HOME/miniconda3/miniconda.sh
+    bash $HOME/miniconda3/miniconda.sh -b -u -p $HOME/miniconda3
+    rm -rf $HOME/miniconda3/miniconda.sh
+    $HOME/miniconda3/bin/conda init bash
     . .bashrc
 
 The environment can then be created and activated:
@@ -51,18 +51,18 @@ You may have to install some dependencies such as build-essential for gvar or cf
 
 Once this is done, you need to download the software from git:
 
-    mkdir ~/$python_folder
-    cd ~/$python_folder
+    mkdir $HOME/$python_folder
+    cd $HOME/$python_folder
     git clone https://github.com/bepinat/sitelle-data-analysis.git
 
 Some setups have to be done for the three packages ORB, ORBS and ORCS:
 
-    cd ~/$python_folder/sitelle-data-analysis/src/orb
+    cd $HOME/$python_folder/sitelle-data-analysis/src/orb
     python setup.py build_ext --inplace
-    echo $HOME/$python_folder/sitelle-data-analysis/src/orb > ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth  # for developers
-    echo $HOME/$python_folder/sitelle-data-analysis/src/orbs >> ~/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth  # for developers
+    echo $HOME/$python_folder/sitelle-data-analysis/src/orb > $HOME/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth  # for developers
+    echo $HOME/$python_folder/sitelle-data-analysis/src/orbs >> $HOME/miniconda3/envs/$envname/lib/python3.9/site-packages/conda.pth  # for developers
     python setup.py install # not for developer
-    cd ~/$python_folder/sitelle-data-analysis/src/orcs
+    cd $HOME/$python_folder/sitelle-data-analysis/src/orcs
     python setup.py install
 
 The following tests can then be performed:
@@ -73,10 +73,10 @@ The following tests can then be performed:
 
 Then, for developpers, scripts (orb-convert, orbs, orbs-fit-calibration-laser-map, orbs-sitelle-makejob) may be linked to the binaries of the environment:
 
-    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orb/scripts/orb-convert ~/miniconda3/envs/$envname/bin/
-    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs ~/miniconda3/envs/$envname/bin/
-    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs-fit-calibration-laser-map ~/miniconda3/envs/$envname/bin/
-    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs-sitelle-makejob ~/miniconda3/envs/$envname/bin/
+    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orb/scripts/orb-convert $HOME/miniconda3/envs/$envname/bin/
+    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs $HOME/miniconda3/envs/$envname/bin/
+    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs-fit-calibration-laser-map $HOME/miniconda3/envs/$envname/bin/
+    ln -s $HOME/$python_folder/sitelle-data-analysis/src/orbs/scripts/orbs-sitelle-makejob $HOME/miniconda3/envs/$envname/bin/
 
 They can alternatively be put in the user $PATH (this can be added in the .bashrc), but this will also be effective outside the environment:
 
