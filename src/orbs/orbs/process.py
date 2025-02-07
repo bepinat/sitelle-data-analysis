@@ -495,7 +495,7 @@ class RawData(orb.cube.InterferogramCube):
                 frames = frames.reshape((frames.shape[0], frames.shape[1], 1))
             
             if cr_map_cube is not None:
-                cr_frames_data = cr_map_cube[:,:,ik:ik+ncpus].astype(np.bool)
+                cr_frames_data = cr_map_cube[:,:,ik:ik+ncpus].astype(bool)
                 cr_frames = list()
                 for ijob in range(ncpus):
                     cr_frames.append(cr_frames_data[:,:,ijob])

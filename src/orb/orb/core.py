@@ -2219,7 +2219,7 @@ class Data(object):
                     self.dimx, self.dimy, data.shape))
 
         else:
-            orb.utils.validata.is_1darray(data, object_name='data')
+            orb.utils.validate.is_1darray(data, object_name='data')
             if data.shape != self.dimx:
                 raise TypeError('data must have shape ({}) but has shape'.format(
                     self.dimx, data.shape))

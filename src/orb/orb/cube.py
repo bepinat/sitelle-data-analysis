@@ -773,14 +773,17 @@ class HDFCube(orb.core.WCSData):
         flambda = np.ones(self.dimz, dtype=float)
         if self.get_level() >= 3:
             if 'flambda' in self.params:
-                flambda = self.params.flambda
-            
+                flambda = self.params.flambda / self.dimz / self.params.exposure_time
+                unit = 'ERG/S/CM2/A/PIXEL'
+
             if np.size(flambda) == 1:
                 flambda *= np.ones(self.dimz, dtype=float)
+                unit = 'ERG/S/CM2/A/PIXEL'
             elif np.size(flambda) != self.dimz:
                 logging.warning('bad flux calibration, output will not be flux calibrated')
                 flambda = np.ones(self.dimz, dtype=float)
-                
+                unit = 'COUNTS'
+
         hdr = astropy.io.fits.Header()
         hdr['SIMPLE'] = True
         hdr['BITPIX'] = (-32, 'np.float32')
@@ -789,28 +792,38 @@ class HDFCube(orb.core.WCSData):
         hdr['NAXIS1'] = self.dimx
         hdr['NAXIS2'] = self.dimy
         hdr['NAXIS3'] = self.dimz
+        hdr['CUNIT'] = unit
+        hdr['CTYPE3'] = 'WAVN'
+        hdr['CRPIX3'] = 1
+        hdr['CRVAL3'] = 0
+        hdr['CDELT3'] = 0
+        hdr['CUNIT3'] = 'CM-1'
 
         cubehdr = self.get_header()
         for ikey in cubehdr:
             if ikey not in hdr:
-                hdr[ikey] = (cubehdr[ikey], cubehdr.comments[ikey])    
-        
+                hdr[ikey] = (cubehdr[ikey], cubehdr.comments[ikey])
+        hdr['CRVAL3'] = hdr['axis_min']
+        hdr['CDELT3'] = hdr['axis_step']
+        #hdr['CDELT1'] = -hdr['delta_x']
+        #hdr['CDELT2'] = hdr['delta_y']
+        #hdr['CROTA2'] = hdr['wcs_calibration']
+
         try:
             os.remove(path)
         except FileNotFoundError:
             pass
-        
+
         shdu = astropy.io.fits.StreamingHDU(path, hdr)
         progress = orb.core.ProgressBar(self.dimz)
         for iz in range(hdr['NAXIS3']):
             progress.update(iz, info='Exporting frame {}'.format(iz))
             shdu.write(self[:,:,iz].real.astype(np.float32).T * flambda[iz])
             #shdu.write(np.zeros((self.dimy, self.dimx), dtype=np.float32))
-            
+
         progress.end()
         shdu.close()
 
-            
     def get_frame_header(self, index):
         """Return the header of a frame given its index in the list.
 

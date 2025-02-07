@@ -156,6 +156,7 @@ class Photometry(object):
         
         :return: a flux in counts/s
         """
+
         if not modulated:
             if opd_jitter is not None or wf_error is not None:
                 logging.warning('opd_jitter and wf_error have no effect when computing unmodulated flux')
