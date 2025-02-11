@@ -730,7 +730,6 @@ class HDFCube(orb.core.WCSData):
                         iquad+1, quad_nb))
                     fout['data'][xmin:xmax, ymin:ymax, :] = data
 
-
     def crop(self, path, cx, cy, size):
         """Extract a part of the file and write it to a new hdf file
 
@@ -758,9 +757,9 @@ class HDFCube(orb.core.WCSData):
         data = self[xmin:xmax, ymin:ymax, :]
         outcube[:,:,:] = data
         logging.info('cropped cube written at {}'.format(path))
-                
+
     def to_fits(self, path):
-        """write data to a FITS file. 
+        """Write data to a FITS file.
 
         Note that most of the information will be lost in the
         process. The only output guaranteed format is hdf5 (use
