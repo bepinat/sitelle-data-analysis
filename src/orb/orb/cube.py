@@ -274,8 +274,9 @@ class HDFCube(orb.core.WCSData):
           cube.params.flambda2. spectrum = spectrum_counts *
           cube.params.flambda.
         """
+
         try:
-            return int(self.level)
+            return self.level
         except AttributeError: pass
         
         with self.open_hdf5('r') as f:
@@ -291,7 +292,6 @@ class HDFCube(orb.core.WCSData):
                     logging.info('CFHT version')
             if self.level == 1:
                 logging.warning('old cube architecture (level 1). IO performances could be reduced.')
-                
         return self.level
                     
     
@@ -770,7 +770,7 @@ class HDFCube(orb.core.WCSData):
         # https://docs.astropy.org/en/stable/generated/examples/io/skip_create-large-fits.html
 
         flambda = np.ones(self.dimz, dtype=float)
-        if self.get_level() >= 3:
+        if self.get_level() >= 2.5:
             if 'flambda' in self.params:
                 flambda = self.params.flambda / self.dimz / self.params.exposure_time
                 unit = 'ERG/S/CM2/A/PIXEL'
