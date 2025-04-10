@@ -20,15 +20,15 @@ First, it is necessary to install Miniconda to create the proper python environm
 
 The environment can then be created and activated:
 
-    conda create -n $envname
+    conda create -n $envname --yes
     conda activate $envname
 
 Once this is done, it is time to install the required python packages.
 
 Packages necessary for ORB:
 
-    conda install -c conda-forge -c astropy -c anaconda python=3.9.7 ipython astropy=5.3.4 numpy=1.24.3 scipy=1.10.1 matplotlib=3.5.1 cython=3.0.0 dill=0.3.7 pandas=1.4.4 photutils=1.4.0 astroquery=0.4.6 pytables jupyterlab gitpython reproject
-    conda install h5py=3.9.0
+    conda install --yes -c conda-forge -c astropy -c anaconda python=3.9.7 ipython astropy=5.3.4 numpy=1.24.3 scipy=1.10.1 matplotlib=3.5.1 cython=3.0.0 dill=0.3.7 pandas=1.4.4 photutils=1.4.0 astroquery=0.4.6 pytables jupyterlab gitpython reproject
+    conda install --yes h5py=3.9.0
     pip install pyregion==2.2.0 --no-deps  # the version that was previously used does not install properly anymore with the latest conda version: pip install pyregion==2.1.1 --no-deps
     pip install gvar==10 --no-deps
     pip install lsqfit==13.0.4 --no-deps
@@ -36,7 +36,7 @@ Packages necessary for ORB:
 
 Packages necessary for ORBS:
 
-    conda install -c conda-forge clint=0.5.1 html2text distro=1.8.0 lxml=4.9.1 python-magic
+    conda install --yes -c conda-forge clint=0.5.1 html2text distro=1.8.0 lxml=4.9.1 python-magic
     pip install gitdb==4.0.7 --no-deps
     pip install smmap==4.0.0 --no-deps
     pip install cadcdata --no-deps
