@@ -770,6 +770,7 @@ class HDFCube(orb.core.WCSData):
         # https://docs.astropy.org/en/stable/generated/examples/io/skip_create-large-fits.html
 
         flambda = np.ones(self.dimz, dtype=float)
+        unit = ''
         if self.get_level() >= 2.5:
             if 'flambda' in self.params:
                 flambda = self.params.flambda / self.dimz / self.params.exposure_time
